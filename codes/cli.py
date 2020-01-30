@@ -1,5 +1,5 @@
 # @file cli.py
-# @brief cli of whole tool
+# @brief CLI of whole tool
 # README: Command line interface
 # MODULE_ARCH:  
 # CLASS_ARCH:
@@ -53,11 +53,8 @@ class Cli(cmd.Cmd):
         for var in gc.GAP.user_vars.keys():
             print("%s=%s" % ( var , gc.GAP.user_vars[var]))
 
-############ top command ####################                      
-    #def do_test1(self, line):
-    #    """current debug command"""
-    #    self.cli_ebm.do_init("")
-        
+
+    
     def do_about(self, line):
         """About this software"""
         print("%s version: v%s" %(LSIM_TITLE,LSIM_VERSION))
@@ -65,9 +62,31 @@ class Cli(cmd.Cmd):
         """quit"""
         return True
 ############ top command ####################                      
+    #def do_test1(self, line):
+    #    """current debug command"""
+    #    self.cli_ebm.do_init("")
+    def do_reset(self,line):
+        """ reset for next run """
+        
+        gc.GAP.reset()
+        print("reseted")
+        
+    def do_status(self,line):
+        """ show current status """
+        print(gc.MODEL.desc())                    
+
     def do_simrun(self, line):
-        """Start simulation"""
-        gc.GAP.simrun(10)
+        """Start simulation
+            simrun {count}
+            ex: simrun 50
+        """
+        
+        pars=line.split()
+        count = 50
+        if len(pars)==1:
+            count = int(pars[0])
+
+        gc.GAP.simrun(count)
 
 
     

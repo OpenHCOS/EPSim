@@ -1,5 +1,5 @@
 # @file sim.py
-# @brief the sample file that copied for new python file
+# @brief statup and AP mode selection
 # README: Startup code
 # MODULE_ARCH:  
 # CLASS_ARCH:
@@ -52,6 +52,8 @@ if __name__ =='__main__':
     gc.UI = ui.UserInterface()
     gc.GAP = app.SApp()
     gc.MODEL = md.Model(simpy.Environment())
+    gc.VIRUS = md.VirusModel()
+    gc.HC = md.HCSys()
 
     #run by different mode
     if apmode == AP_MODE_UNITTEST:

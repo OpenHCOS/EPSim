@@ -22,6 +22,9 @@ class UserInterface():
         #global: these variables allow to direct access from outside.
         pass
       
-    def test(self,data):
-        line, = plt.plot(data)
+    def test(self,data,label):
+        plt.xlabel('天數')
+        plt.ylabel('病人數')
+        plt.plot(data,label=label)
+        plt.legend()
         plt.show()

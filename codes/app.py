@@ -48,9 +48,15 @@ class SApp:
         pass
     def save_setting(self):
         pass
+    def reset(self):
+        gc.HC.reset()
+        gc.VIRUS.reset()
+        gc.MODEL = md.Model(simpy.Environment())
     def simrun(self, v_until):
         """current debug command"""
-        gc.MODEL.entity_setup()
+        self.reset()
+        
+        gc.MODEL.model_setup()
         
         mm = md.ModelMonitor()
         logging.info("Simulation start!\nSimulation Descriptor:\n%s" %(gc.MODEL.get_desc_str() ) )
@@ -59,7 +65,8 @@ class SApp:
             gc.MODEL.env.run(until=i)
             gc.MODEL.dt_end = gc.MODEL.dt_start + timedelta(days=i)
             mm.history.append(gc.MODEL.patient_mgr.rpt_status())
-            logging.info(gc.MODEL.desc() )
+            #logging.info(gc.MODEL.desc() )
         print("total history: %s" % (mm.history))
-        gc.UI.test(mm.history)
+        gc.MODEL.model_desc = "model=%i,sickday_rnd=%.2f,infect_capacity=%.2f" % (gc.VIRUS.vm_mode,gc.VIRUS.sickday_rnd,gc.HC.hc_infect_capacity)
+        gc.UI.test(mm.history,gc.MODEL.model_desc)
     

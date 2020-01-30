@@ -22,3 +22,12 @@ UI = None
 
 global MODEL
 MODEL = None
+
+global VIRUS
+VIRUS = None
+
+global HC
+HC = None
+
+
+
