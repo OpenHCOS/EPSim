@@ -21,7 +21,13 @@ from lib.const import *
 class ModelMonitor():
     def __init__(self):
         self.history=[]
-        pass
+        self.history_x = []
+    def desc(self,desc_id):
+        txt_desc = ""
+        for i in range(len(self.history)):
+            txt_desc += "%s,%i\n" %(self.history_x[i].strftime('%Y-%m-%d'), self.history[i])
+            
+        return txt_desc
 
 #Spec: Core simulation model
 #How/NeedToKnow:
@@ -29,24 +35,27 @@ class Model():
     def __init__(self,env):
         #private
         #global: these variables allow to direct access from outside.
+        self.reset(env)
+        
+        
+    def reset(self,env):
         self.env = env
         self.desc_list=[] # some description about the model
                 
-        fmt = '%Y-%m-%d %H:%M:%S'
+        fmt = '%Y-%m-%d'
         self.dt_start = datetime.strptime(gc.SETTING["MODEL_START_TIME"], fmt)
         self.dt_end = self.dt_start #init value
         
         
         self.patient_mgr = PatientMgr() 
-        self.srs= StateRecordSets()
-        sr = self.srs.find_byoffset(0) 
-        self.patient_mgr.update_sr(sr)
+        self.patient_mgr.start_init()
+        #self.srs= StateRecordSets()
+        #sr = self.srs.find_byoffset(0) 
+        #self.patient_mgr.update_sr(sr)
         
         self.model_desc = ""
+        self.model_day=0
         
-        
-    def init(self):
-        pass
     def model_setup(self):
         self.env.process(self.patients_run()) 
         self.desc_list.append("model_setup!")
@@ -61,9 +70,9 @@ class Model():
                 if p.sick_status == SICKSTATUS_DIE:
                     die_list.append(k)
             
-                inf_rate = gc.VIRUS.infect_ability(p) * gc.HC.infect_capacity(p)
+                inf_rate = gc.VIRUS.infect_byday(p)
                 if random.uniform(0,1) < inf_rate:
-                    self.patient_mgr.add_patient()
+                    self.patient_mgr.add_patient(p.p_seq,self.model_day)
             for d in die_list:
                 del self.patient_mgr.patients[d]
                 #self.patient_mgr.add_sr5()
@@ -72,5 +81,5 @@ class Model():
         
     def get_desc_str(self):
         return "\n".join(self.desc_list)   
-    def desc(self):
-        return self.patient_mgr.desc()
+    def desc(self,desc_id):
+        return self.patient_mgr.desc(desc_id)

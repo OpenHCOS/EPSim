@@ -8,8 +8,10 @@
 #standard
 import logging
 from datetime import datetime,timedelta
+
 #extend
 import simpy
+import matplotlib.dates as mdate
 #library
 import codes.model as md
 import codes.ui as ui
@@ -23,7 +25,9 @@ class SApp:
     def __init__(self):
         self.init_log()
         logging.info("%s version: v%s" %(LSIM_TITLE,LSIM_VERSION))
-        self.user_vars={}
+        self.reset()
+        
+        
     def init_log(self):
         # set up logging to file - see previous section for more details
         logging.basicConfig(level=logging.INFO,
@@ -49,24 +53,29 @@ class SApp:
     def save_setting(self):
         pass
     def reset(self):
-        gc.HC.reset()
         gc.VIRUS.reset()
         gc.MODEL = md.Model(simpy.Environment())
+        self.user_vars={}
+        self.mm = md.ModelMonitor()
+         
     def simrun(self, v_until):
         """current debug command"""
-        self.reset()
+        #self.reset()
         
         gc.MODEL.model_setup()
         
-        mm = md.ModelMonitor()
+        
         logging.info("Simulation start!\nSimulation Descriptor:\n%s" %(gc.MODEL.get_desc_str() ) )
         
         for i in range(1,v_until):
+            gc.MODEL.model_day = i
             gc.MODEL.env.run(until=i)
             gc.MODEL.dt_end = gc.MODEL.dt_start + timedelta(days=i)
-            mm.history.append(gc.MODEL.patient_mgr.rpt_status())
+            
+            self.mm.history_x.append(gc.MODEL.dt_end)
+            self.mm.history.append(gc.MODEL.patient_mgr.rpt_status())
             #logging.info(gc.MODEL.desc() )
-        print("total history: %s" % (mm.history))
-        gc.MODEL.model_desc = "model=%i,sickday_rnd=%.2f,infect_capacity=%.2f" % (gc.VIRUS.vm_mode,gc.VIRUS.sickday_rnd,gc.HC.hc_infect_capacity)
-        gc.UI.test(mm.history,gc.MODEL.model_desc)
+        print("total history: %s" % (self.mm.history))
+        gc.MODEL.model_desc = "model=%i,sickday_rnd=%.2f,vm_r0=%.2f" % (gc.VIRUS.vm_mode,gc.VIRUS.sickday_rnd,gc.VIRUS.vm_r0)
+        gc.UI.test(self.mm.history_x, self.mm.history,gc.MODEL.model_desc)
     

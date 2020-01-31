@@ -72,9 +72,41 @@ class Cli(cmd.Cmd):
         print("reseted")
         
     def do_status(self,line):
-        """ show current status """
-        print(gc.MODEL.desc())                    
+        """ show current status 
+            status {desc_id}
+            ex: status 1
+        """
+        pars=line.split()
+        desc_id = 1
+        if len(pars)==1:
+            desc_id = int(pars[0])        
+        print(gc.MODEL.desc(desc_id))
+        print(gc.GAP.mm.desc(desc_id))                   
 
+    def do_regression(self,line):
+        """ regression for simulation 
+            regression {case} {par1} {par2}
+            ex: regression 1 1.5 0.2 10 #case=1, r0=1.5, step =0.2, sim_day=10
+        """
+
+        pars=line.split()
+        case = 1
+        r0 = 1.5
+        step = 0.2
+        sim_days = 10
+        if len(pars)>=1:
+            case = int(pars[0])
+            r0 = float(pars[1])
+            step = float(pars[2])
+            sim_days=int(pars[3])
+        if case == 1: #r0, step, sim_days
+            
+            for i in range(10):
+                gc.GAP.reset()
+                
+                gc.VIRUS.vm_r0 = r0 + i*step
+                gc.GAP.simrun(sim_days)
+        
     def do_simrun(self, line):
         """Start simulation
             simrun {count}
@@ -85,7 +117,8 @@ class Cli(cmd.Cmd):
         count = 50
         if len(pars)==1:
             count = int(pars[0])
-
+        
+        gc.GAP.reset()
         gc.GAP.simrun(count)
 
 
