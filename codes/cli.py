@@ -79,21 +79,22 @@ class Cli(cmd.Cmd):
         pars=line.split()
         desc_id = 1
         if len(pars)==1:
-            desc_id = int(pars[0])        
+            desc_id = int(pars[0])   
+        print(gc.VIRUS.desc(desc_id))     
         print(gc.MODEL.desc(desc_id))
         print(gc.GAP.mm.desc(desc_id))                   
 
     def do_regression(self,line):
         """ regression for simulation 
             regression {case} {par1} {par2}
-            ex: regression 1 1.5 0.2 10 #case=1, r0=1.5, step =0.2, sim_day=10
+            ex: regression 1 3.0 0.2 20 #case=1, r0=3.0, step =0.2, sim_day=20
         """
 
         pars=line.split()
         case = 1
-        r0 = 1.5
+        r0 = 3.0
         step = 0.2
-        sim_days = 10
+        sim_days = 20
         if len(pars)>=1:
             case = int(pars[0])
             r0 = float(pars[1])
@@ -110,11 +111,11 @@ class Cli(cmd.Cmd):
     def do_simrun(self, line):
         """Start simulation
             simrun {count}
-            ex: simrun 50
+            ex: simrun 20
         """
         
         pars=line.split()
-        count = 50
+        count = 20
         if len(pars)==1:
             count = int(pars[0])
         

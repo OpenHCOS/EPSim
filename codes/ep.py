@@ -26,21 +26,22 @@ class Patient(Human):
     def __init__(self,p_seq):
         Human.__init__(self,p_seq)
         self.sick_start  = 0 # 被感染日
-        self.sick_day=0
+        self.sick_day=0 #模擬病了幾日
+        self.sick_act_day=0 #真實病了幾日
         self.sick_status = 0 # 有症狀...
         self.attrs = [] # 各種屬性
         self.parent = 0 # 被誰感染 seq
         self.childs = [] # 感染了誰 seq
+        self.infect_days = 0 # 可感染幾天
+        self.infect_count = 0
+        self.b_random = False # 是否被隨機產生
     def add_sick_day(self, sickday_value): # 加一天隨機病程
         self.sick_day += sickday_value
-    def random_init(self):
-        self.sick_status = SICKSTATUS_INIT # 有症狀...    
+    def desc(self,desc_id=0):
+        txt_desc = "seq=%i,p_seq=%i,sick_status=%i,infect_days=%i,sick_day=%f,infect_count=%i\n" % (self.p_seq,self.parent,  self.sick_status, self.infect_days,self.sick_day,self.infect_count)
+        return txt_desc
+        
 
-        self.sick_day= random.uniform(1,20)
-        if self.sick_day >= 20.0:
-            self.sick_status = SICKSTATUS_DIE
-        elif self.sick_day >= 7.0:
-            self.sick_status = SICKSTATUS_SHOW    
 
 #Spec: Manager all patient information
 #How/NeedToKnow:        
@@ -50,9 +51,12 @@ class PatientMgr():
     def reset(self):
         self.p_seq=0 # human sequence
         self.patients = {} #patients dict, index by seq
+        self.dies = {}
+        self.p_pass = {}
         self.sr_cur = [0,0,0,0,0,0,0,0]
         self.sr_last = []  
-        self.root = [] # 外部/感染源傳來， seq  
+        self.root = [] # 外部/感染源傳來， seq
+        self.inf_count = 0  #非初始感染數 
     def start_init(self):
         patient_start = int(gc.SETTING["PATIENT_START_COUNT"]) 
         #patient_start = 643
@@ -71,14 +75,16 @@ class PatientMgr():
         new_patient_id = self.p_seq
         p = Patient(new_patient_id)
         p.sick_start = current_day
-        if need_random:
-            p.random_init()
+        
+        gc.VIRUS.patient_init(p,need_random)
         p.parent = parent
         
         self.patients[new_patient_id] = p
         if parent != 0:
             self.patients[parent].childs.append(new_patient_id)
         self.p_seq+=1
+        if need_random==False:
+            self.inf_count+=1
         return new_patient_id
     def rpt_status(self):
         return len(self.patients)
@@ -86,10 +92,35 @@ class PatientMgr():
         txt_desc=""
         if desc_id==0: # patients count
             txt_desc = "Patients count: %i" %(len(self.patients))
-        if desc_id==1: # detail   
+        if desc_id==1: # detail 
+            
+            txt_desc = "Patients count: %i, Die count=%i, Pass count=%i, infect count=%i\n" %(len(self.patients),len(self.dies),len(self.p_pass),self.inf_count)  
+            txt_desc += "Die rate=%f,Pass rate=%f\n" %(float(len(self.dies))/len(self.patients),float(len(self.p_pass))/len(self.patients)) 
             for k in self.patients:
                 p = self.patients[k]
-                txt_desc += "seq=%i,p_seq=%i-%f\t" % (p.p_seq,p.parent, p.sick_day)
+                #txt_desc += p.desc(desc_id)
+            infect_count = 0    
+            p_count = 0
+            sick_act_day = 0
+            for k in self.dies:
+                p = self.dies[k]
+                if not p.b_random:
+                    infect_count += p.infect_count
+                    sick_act_day += p.sick_act_day
+                    p_count += 1
+            if p_count>0:
+                txt_desc += "average infect_count(die)=%f,sick_act_day(die)=%f\t" %(float(infect_count)/p_count,float(sick_act_day)/p_count)
+            infect_count = 0
+            p_count = 0
+            sick_act_day = 0
+            for k in self.p_pass:
+                p = self.p_pass[k]
+                if not p.b_random:
+                    infect_count += p.infect_count
+                    sick_act_day += p.sick_act_day
+                    p_count += 1
+            if p_count>0:
+                txt_desc += "average infect_count(pass)=%f, sick_act_day(pass)=%f\n" %(float(infect_count)/p_count,float(sick_act_day)/p_count)
         if desc_id==2: # dot graph
             txt_desc="digraph G {\n"
             for k in self.patients:
@@ -138,30 +169,76 @@ class VirusModel():
         self.pars = []
     def reset(self): # reset for reload setting from file
         random.seed()
+        
         self.vm_mode = int(gc.SETTING["VM_MODE"])
         self.sickday_rnd = float(gc.SETTING["SICKDAY_PERCENT"])
         self.vm_r0 = float(gc.SETTING["VM_R0"]) 
-        self.vm_infect_daystart = float(gc.SETTING["VM_INFECT_DAYSTART"]) 
-         
+
+        self.infect_daystart = float(gc.SETTING["INFECT_DAYSTART"]) 
+        incubation_period = gc.SETTING["INCUBATION_PERIOD"] # 2,14 #潛伏期
+        show_to_end = gc.SETTING["SHOW_TO_END"] #5,14 #有症狀到結束的天數
+        pars=incubation_period.split()
+        self.incubation_period = [int(pars[0]),int(pars[1])]
         
+        pars=show_to_end.split()
+        self.show_to_end = [int(pars[0]),int(pars[1])]
+        self.infect_days = float(gc.SETTING["INFECT_DAYS"]) #可傳染天數
         
+        self.show_to_heavy_rate= float(gc.SETTING["SHOW_TO_HEAVY_RATE"])
+        self.infect_day_rate= float(gc.SETTING["INFECT_DAY_RATE"])
+        
+    # sick_day = 1 +- sickday_rnd
+    # 0->1 : 潛伏期內隨機發生
+    # 1->2 : show_to_end 內隨機
+    # 2->3 : 隨機發生
+    # 1->3 : show_to_end 內隨機
     def age_oneday(self, patient):
         if self.vm_mode == 1:
             patient.sick_day +=  random.uniform(1.0-self.sickday_rnd,1.0+self.sickday_rnd)
-            if patient.sick_day >= 20.0:
-                patient.sick_status = SICKSTATUS_DIE
-            elif patient.sick_day >= 7.0:
-                patient.sick_status = SICKSTATUS_SHOW
-        else:
-            pass
+            patient.sick_act_day +=1
+            if patient.sick_status == SICKSTATUS_INIT:
+                if patient.sick_day >= self.incubation_period[0]:
+                    if random.uniform(0,1) <= 1.0/(self.incubation_period[1]-self.incubation_period[0]):
+                        patient.sick_status = SICKSTATUS_SHOW
+            elif patient.sick_status == SICKSTATUS_SHOW:
+                if random.uniform(0,1) <= 1.0/self.show_to_end[1]:
+                    patient.sick_status = SICKSTATUS_HEAVY
+                elif random.uniform(0,1) <= 1.0/self.show_to_end[1]:
+                    patient.sick_status = SICKSTATUS_PASS
+            elif patient.sick_status == SICKSTATUS_HEAVY:
+                if random.uniform(0,1) <= 1.0/self.show_to_end[0]:
+                    patient.sick_status = SICKSTATUS_SHOW
+                elif random.uniform(0,1) <= 1.0/self.show_to_end[0]:
+                    patient.sick_status = SICKSTATUS_DIE
+            else:
+                pass
+            
+            if patient.sick_day >= self.incubation_period[1] + self.show_to_end[1]:
+                patient.sick_status = SICKSTATUS_PASS
 
     def infect_byday(self,patient):
         if self.vm_mode == 1:
             if patient.sick_status == SICKSTATUS_DIE or patient.sick_status ==SICKSTATUS_PASS:
                 return 0
-            if patient.sick_day>= self.vm_infect_daystart and patient.sick_day<=8:
-                return self.vm_r0/(8-self.vm_infect_daystart)
+            if patient.sick_day>= self.infect_daystart and patient.sick_day<=(self.infect_days+self.infect_daystart):
+                return self.vm_r0/(self.infect_days) * self.infect_day_rate 
             else:
                 return 0
         else:
-            return 0        
+            return 0  
+    def patient_init(self,patient, need_random=0): 
+        patient.infect_days = random.uniform(0.75,1.25) * self.infect_days
+         
+        if need_random:
+            patient.b_random = True
+            patient.sick_status = SICKSTATUS_SHOW # 有症狀...
+             
+            patient.sick_day= random.uniform(1,self.incubation_period[1]/2 + self.show_to_end[0])
+            if random.uniform(0,1) <= self.show_to_heavy_rate:
+                patient.sick_status = SICKSTATUS_HEAVY
+            #print(patient.desc(0),end = '') #parser exception
+    def desc(self,desc_id=0):
+        desc_txt = "vm_mode=%i,vm_r0=%f, sickday_rnd=%f,infect_daystart=%i,incubation_period=%i %i,show_to_end=%i %i,infect_days=%i,show_to_heavy_rate=%f,infect_day_rate=%f" % (self.vm_mode,self.vm_r0,self.sickday_rnd,self.infect_daystart,self.incubation_period[0],self.incubation_period[1],self.show_to_end[0],self.show_to_end[1],self.infect_days,self.show_to_heavy_rate,self.infect_day_rate)
+                
+
+        return desc_txt

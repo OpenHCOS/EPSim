@@ -8,7 +8,7 @@
 #standard
 
 LSIM_TITLE='Epidemic Prevention Simulator'
-LSIM_VERSION='0.1.1'
+LSIM_VERSION='0.1.2'
 
 AP_MODE_NORMAL=1
 AP_MODE_UNITTEST=2

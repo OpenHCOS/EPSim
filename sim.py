@@ -50,10 +50,12 @@ if __name__ =='__main__':
     #init global classes   
     gc.SETTING  = ConfigObj("include/sim.ini") 
     gc.UI = ui.UserInterface()
-    gc.MODEL = md.Model(simpy.Environment())
     gc.VIRUS = md.VirusModel()
+    gc.MODEL = md.Model(simpy.Environment())
     gc.HC = md.HCSys()
     gc.GAP = app.SApp()
+    
+    
     #run by different mode
     if apmode == AP_MODE_UNITTEST:
         suite = unittest.TestLoader().loadTestsFromTestCase(ut.UTGeneral)

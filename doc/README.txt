@@ -1,9 +1,12 @@
 README- Epidemic Prevention Simulator 
 
 Please refer "https://paper.dropbox.com/doc/T5YrQLfFQXVNrSyS8iVQ4"
-Current version: 0.1.1
+Current version: 0.1.2
 
 By Version:
+V0.1.2
+  rerun by setting, sick status included, quick sync with china record
+
 V0.1.1
   regression supported, tree supported, patient count with random start
 

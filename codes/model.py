@@ -48,7 +48,7 @@ class Model():
         
         
         self.patient_mgr = PatientMgr() 
-        self.patient_mgr.start_init()
+        #self.patient_mgr.start_init()
         #self.srs= StateRecordSets()
         #sr = self.srs.find_byoffset(0) 
         #self.patient_mgr.update_sr(sr)
@@ -58,23 +58,33 @@ class Model():
         
     def model_setup(self):
         self.env.process(self.patients_run()) 
-        self.desc_list.append("model_setup!")
+        #self.desc_list.append("model_setup!")
     
     def patients_run(self):
         while True:
             die_list = []
+            pass_list = []
             
             for k in list(self.patient_mgr.patients):
                 p = self.patient_mgr.patients[k]
                 gc.VIRUS.age_oneday(p)
                 if p.sick_status == SICKSTATUS_DIE:
                     die_list.append(k)
+                    
+                if p.sick_status==SICKSTATUS_PASS:
+                    pass_list.append(k)
             
                 inf_rate = gc.VIRUS.infect_byday(p)
-                if random.uniform(0,1) < inf_rate:
+                if random.uniform(0,1) < inf_rate: # 感染新病人
                     self.patient_mgr.add_patient(p.p_seq,self.model_day)
-            for d in die_list:
-                del self.patient_mgr.patients[d]
+                    p.infect_count+=1
+            for n in die_list:
+                self.patient_mgr.dies[n] = self.patient_mgr.patients[n]
+                del self.patient_mgr.patients[n]
+                
+            for n in pass_list:
+                self.patient_mgr.p_pass[n] = self.patient_mgr.patients[n]
+                del self.patient_mgr.patients[n]
                 #self.patient_mgr.add_sr5()
             #logging.info("patients count %i" %(len(self.patient_mgr.patients)))
             yield self.env.timeout(1)  

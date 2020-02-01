@@ -53,8 +53,10 @@ class SApp:
     def save_setting(self):
         pass
     def reset(self):
+        gc.SETTING.reload()
         gc.VIRUS.reset()
         gc.MODEL = md.Model(simpy.Environment())
+        gc.MODEL.patient_mgr.start_init()
         self.user_vars={}
         self.mm = md.ModelMonitor()
          
@@ -65,7 +67,7 @@ class SApp:
         gc.MODEL.model_setup()
         
         
-        logging.info("Simulation start!\nSimulation Descriptor:\n%s" %(gc.MODEL.get_desc_str() ) )
+        #logging.info("Simulation start!\nSimulation Descriptor:\n%s" %(gc.MODEL.get_desc_str() ) )
         
         for i in range(1,v_until):
             gc.MODEL.model_day = i
