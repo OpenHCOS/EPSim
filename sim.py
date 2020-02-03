@@ -36,9 +36,9 @@ if __name__ =='__main__':
             if opt == '-h':
                 print ('sim.py [ -h ] [ -t ]')
                 print ('    -h, --help: help message')
-                print ('    -t, --test: unit test mode')
+                print ('    -t, --py: unit py mode')
                 sys.exit()
-            elif opt in ("-t", "--test"):
+            elif opt in ("-t", "--py"):
                 apmode = AP_MODE_UNITTEST
                 print("Running as unittest mode!")
     except getopt.GetoptError:
@@ -51,8 +51,8 @@ if __name__ =='__main__':
     gc.SETTING  = ConfigObj("include/sim.ini") 
     gc.UI = ui.UserInterface()
     gc.VIRUS = md.VirusModel()
-    gc.MODEL = md.Model(simpy.Environment())
-    gc.HC = md.HCSys()
+    #gc.MODEL = md.Model(simpy.Environment())
+    #gc.HC = md.HCSys()
     gc.GAP = app.SApp()
     
     

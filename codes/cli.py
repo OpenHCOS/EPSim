@@ -12,7 +12,7 @@ import lib.globalclasses as gc
 from lib.const import *
 
 ##### Code section #####
-#Spec: local variable maintain, about, user commands, test commands
+#Spec: local variable maintain, about, user commands, py commands
 #How/NeedToKnow:
 class Cli(cmd.Cmd):
     """Simple command processor example."""    
@@ -82,8 +82,24 @@ class Cli(cmd.Cmd):
             desc_id = int(pars[0])   
         print(gc.VIRUS.desc(desc_id))     
         print(gc.MODEL.desc(desc_id))
+        print(gc.HC.desc(desc_id))
         print(gc.GAP.mm.desc(desc_id))                   
-
+    
+    #
+    def do_output(self,line):
+        """ output files for analyze
+            output {type_id} 
+            type_id: 1-per day summary info
+            ex: output 1
+        """
+        pars=line.split()
+        type_id = 1
+        if len(pars)==1:
+            type_id = int(pars[0]) 
+        if type_id==1:
+            fp = open("output/day_summary.csv", "w")
+            fp.write(gc.GAP.mm.desc(1))
+            fp.close()
     def do_regression(self,line):
         """ regression for simulation 
             regression {case} {par1} {par2}
@@ -108,6 +124,26 @@ class Cli(cmd.Cmd):
                 gc.VIRUS.vm_r0 = r0 + i*step
                 gc.GAP.simrun(sim_days)
         
+    def do_test(self,line):
+        """ current testing """
+        
+        #import json
+
+        #with open('include/usage.json' , 'r') as json_file:
+        #    data = json.load(json_file)
+        #    print(json.dumps(data))
+        
+        #data = [ { 'a' : 1, 'b' : 2, 'c' : 3, 'd' : 4, 'e' : 5 } ]
+
+        #json1 = json.dumps(data)
+        #print(json1)
+        
+        #jsonData = '{"a":1,"b":2,"c":3,"d":4,"e":5}'
+
+        #text = json.loads(jsonData)
+        #print(text)
+        
+
     def do_simrun(self, line):
         """Start simulation
             simrun {count}

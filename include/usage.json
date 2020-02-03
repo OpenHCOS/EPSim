@@ -1,0 +1,61 @@
+{
+  "resources":[
+    {
+      "quantity": 100,
+      "name": "醫院",
+      "mode": 1
+    },
+    {
+      "quantity": 100,
+      "name": "診所",
+      "mode": 1
+    },
+    {
+      "quantity": 100,
+      "name": "醫生",
+      "mode": 1
+    },
+    {
+      "quantity": 100,
+      "name": "護士",
+      "mode": 1
+    },  
+    {
+      "quantity": 10,
+      "name": "病床",
+      "mode": 1 
+    },
+    {
+      "quantity": 10,
+      "name": "負壓病床",
+      "mode": 1 
+    },
+    {
+      "quantity": 10,
+      "name": "葉克膜",
+      "mode": 1 
+    },
+    {
+      "quantity": 10,
+      "name": "試劑",
+      "mode": 0 
+    },
+    {
+      "quantity": 100,
+      "name": "防護衣服",
+      "mode": 0
+    }
+  ],
+  "heavy_day_usage":[
+    {"病床": 1},
+    {"護士": 0.2},
+    {"醫生": 0.05},
+    {"防護衣服": 1}
+  ],
+  "show_day_usage":[
+    {"護士": 0.01},
+    {"醫生": 0.01}
+  ]
+  
+
+}

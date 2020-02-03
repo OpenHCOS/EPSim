@@ -27,8 +27,11 @@ class UserInterface():
     def test(self,data_x,data,label):
         plt.xlabel('Date')
         plt.ylabel('Patients Count')
-        p = plt.plot(data,label=label)
-        #p = plt.plot(data_x,data,label=label)
+        #p = plt.plot(data,label=label)
+        p = plt.plot(data_x,data,label=label)
+        p = plt.plot(gc.MODEL.srs.sr_x,gc.MODEL.srs.sr_y,label=gc.MODEL.srs.record_file)
+        plt.xticks(rotation=22.5)
+        
         #plt.plot_date(data_x,data,label=label)
         
         plt.legend()

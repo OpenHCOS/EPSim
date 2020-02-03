@@ -6,7 +6,10 @@
 # GLOBAL USAGE: 
 #standard
 import random
+from datetime import datetime
 #extend
+import csv
+import json
 #library
 import lib.globalclasses as gc
 from lib.const import *
@@ -57,6 +60,7 @@ class PatientMgr():
         self.sr_last = []  
         self.root = [] # 外部/感染源傳來， seq
         self.inf_count = 0  #非初始感染數 
+        self.day_usage = None #object
     def start_init(self):
         patient_start = int(gc.SETTING["PATIENT_START_COUNT"]) 
         #patient_start = 643
@@ -86,15 +90,32 @@ class PatientMgr():
         if need_random==False:
             self.inf_count+=1
         return new_patient_id
+    def update_day_usage(self):
+        self.day_usage = gc.HC.patients_day_usage(self.patients)
     def rpt_status(self):
-        return len(self.patients)
+        # SICKSTATUS_INIT=0, SICKSTATUS_SHOW=1  # 有症狀, SICKSTATUS_HEAVY=2 # 重症
+        init_count = 0
+        show_count = 0
+        heavy_count = 0 
+        for k in self.patients:
+            p = self.patients[k]
+            if p.sick_status == SICKSTATUS_INIT:
+                init_count +=1
+            elif p.sick_status == SICKSTATUS_SHOW:
+                show_count +=1
+            elif p.sick_status == SICKSTATUS_HEAVY:
+                heavy_count+=1
+            else: #pass or die
+                pass
+                
+        return [init_count,show_count,heavy_count]
     def desc(self,desc_id=0):
-        txt_desc=""
+        txt_desc = "------ PatientMgr Description: ------\n"
         if desc_id==0: # patients count
-            txt_desc = "Patients count: %i" %(len(self.patients))
+            txt_desc += "Patients count: %i" %(len(self.patients))
         if desc_id==1: # detail 
             
-            txt_desc = "Patients count: %i, Die count=%i, Pass count=%i, infect count=%i\n" %(len(self.patients),len(self.dies),len(self.p_pass),self.inf_count)  
+            txt_desc += "Patients count: %i, Die count=%i, Pass count=%i, infect count=%i\n" %(len(self.patients),len(self.dies),len(self.p_pass),self.inf_count)  
             txt_desc += "Die rate=%f,Pass rate=%f\n" %(float(len(self.dies))/len(self.patients),float(len(self.p_pass))/len(self.patients)) 
             for k in self.patients:
                 p = self.patients[k]
@@ -121,6 +142,7 @@ class PatientMgr():
                     p_count += 1
             if p_count>0:
                 txt_desc += "average infect_count(pass)=%f, sick_act_day(pass)=%f\n" %(float(infect_count)/p_count,float(sick_act_day)/p_count)
+            txt_desc += "HCSys day usages=%s\n" % self.day_usage
         if desc_id==2: # dot graph
             txt_desc="digraph G {\n"
             for k in self.patients:
@@ -139,11 +161,24 @@ class StateRecordSets():
         self.srs[0]=[23,134,106,21,27,1,0,0]
         #self.srs[10]=[24,168, 123 , 23 , 42 , 3 , 0 , 0 ]
         #self.srs[20]=[25,283,156,53,124,3,0,0]
+        self.record_file = gc.SETTING["RECORD_FILE"]
+        self.sr_x = [] # 比對紀錄 x (日期)
+        self.sr_y = [] # 比對紀錄 y (人數)
     def find_byoffset(self,od):
         if od in self.srs:
             return self.srs[od]
         else:
             return None
+    def load_sr(self):
+        with open('include/' + self.record_file, 'r') as f:
+            rows = csv.reader(f)
+            self.sr_x = []
+            self.sr_y = []
+
+            for raw in rows:
+                self.sr_x.append(datetime.strptime(raw[0],"%Y/%m/%d"))
+                self.sr_y.append(int(raw[1]))
+        
 
 #Spec: Health Care System
 #How/NeedToKnow: 
@@ -151,8 +186,36 @@ class HCSys():
     def __init__(self): 
         self.reset()
     def reset(self): # reset for reload setting from file
-        pass
+        self.usage_file = gc.SETTING["USAGE_FILE"]
+        self.usage = {}
+        self.load_usage()
         
+    def load_usage(self):
+        with open('include/' + self.usage_file, 'r') as json_file:
+            self.usage = json.load(json_file)
+        #print(json.dumps(self.usage))
+    def desc(self,desc_id=0):
+        txt_desc = "------ HCSys Setting: ------\n"
+        return "%s%s\n" % (txt_desc, self.usage)
+    def patients_day_usage(self, patients): 
+        #'t1_day_usage': [{'病床': 1}, {'護士': 0.2}, {'醫生': 0.05}]
+        day_usages = {}
+        for pk in patients:
+            p = patients[pk]
+            if p.sick_status == SICKSTATUS_HEAVY:
+                cat= "heavy_day_usage"
+            elif p.sick_status == SICKSTATUS_SHOW:
+                cat = "show_day_usage"
+            else:
+                cat = "" 
+            if not cat =="":
+                for item in self.usage[cat]:  
+                    ik = list(item.keys())[0]
+                    if not ik in day_usages.keys():
+                        day_usages[ik] = 0
+                    day_usages[ik] += item[ik]
+        return day_usages
+        #return "HCSys day usages=%s" %(day_usages)
 
 
 #Spec: Support System
@@ -198,7 +261,7 @@ class VirusModel():
             patient.sick_act_day +=1
             if patient.sick_status == SICKSTATUS_INIT:
                 if patient.sick_day >= self.incubation_period[0]:
-                    if random.uniform(0,1) <= 1.0/(self.incubation_period[1]-self.incubation_period[0]):
+                    if random.uniform(0,1) <= 1.0/(self.incubation_period[1]/2):
                         patient.sick_status = SICKSTATUS_SHOW
             elif patient.sick_status == SICKSTATUS_SHOW:
                 if random.uniform(0,1) <= 1.0/self.show_to_end[1]:
@@ -238,7 +301,8 @@ class VirusModel():
                 patient.sick_status = SICKSTATUS_HEAVY
             #print(patient.desc(0),end = '') #parser exception
     def desc(self,desc_id=0):
-        desc_txt = "vm_mode=%i,vm_r0=%f, sickday_rnd=%f,infect_daystart=%i,incubation_period=%i %i,show_to_end=%i %i,infect_days=%i,show_to_heavy_rate=%f,infect_day_rate=%f" % (self.vm_mode,self.vm_r0,self.sickday_rnd,self.infect_daystart,self.incubation_period[0],self.incubation_period[1],self.show_to_end[0],self.show_to_end[1],self.infect_days,self.show_to_heavy_rate,self.infect_day_rate)
+        txt_desc = "------ VirusModel Description: ------\n"
+        desc_txt = txt_desc + "vm_mode=%i,vm_r0=%f, sickday_rnd=%f,infect_daystart=%i,incubation_period=%i %i,show_to_end=%i %i,infect_days=%i,show_to_heavy_rate=%f,infect_day_rate=%f" % (self.vm_mode,self.vm_r0,self.sickday_rnd,self.infect_daystart,self.incubation_period[0],self.incubation_period[1],self.show_to_end[0],self.show_to_end[1],self.infect_days,self.show_to_heavy_rate,self.infect_day_rate)
                 
 
         return desc_txt

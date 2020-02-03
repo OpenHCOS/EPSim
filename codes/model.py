@@ -10,23 +10,51 @@ import random
 from datetime import datetime,timedelta
 from codes.ep import *
 #extend
+import copy
 #library
 import lib.globalclasses as gc
 from lib.const import *
 
 ##### Code section #####
-   
+
+
 #Spec: Monitor the model, collect the history
 #How/NeedToKnow:
 class ModelMonitor():
     def __init__(self):
-        self.history=[]
         self.history_x = []
-    def desc(self,desc_id):
-        txt_desc = ""
-        for i in range(len(self.history)):
-            txt_desc += "%s,%i\n" %(self.history_x[i].strftime('%Y-%m-%d'), self.history[i])
-            
+        self.pms = [] # PatientMgrs
+    #def append(self,data_date, pm, mr):
+    def append(self,model):
+        data_date = model.dt_end
+        pm = model.patient_mgr
+        pm.update_day_usage()
+        self.history_x.append(data_date)
+        self.pms.append(copy.deepcopy(pm))
+    def pms_info(self,info_id=0):
+        info = []
+        for pm in self.pms:
+            info.append(len(pm.patients))
+        return info
+    def desc(self,desc_id=0):
+        # 0 - console
+        # 1 - file
+        if desc_id==0:
+            txt_desc = "------ ModelMonitor Description: ------\n"
+        else:
+            txt_desc = ""
+        for i in range(len(self.pms)):
+            pm = self.pms[i]
+            if i == 0 :
+                keys = "date,patient,pass,die,init,show,heavy"
+                for key in pm.day_usage.keys():
+                    keys += "," + key
+                txt_desc += keys + "\n"
+            vstr = ""
+            for key in pm.day_usage.keys():
+                vstr += "," + "%.2f" %(pm.day_usage[key])
+            status = pm.rpt_status()
+            txt_desc += "%s,%i,%i,%i,%i,%i,%i%s\n" %(self.history_x[i].strftime('%Y-%m-%d'), len(pm.patients),len(pm.p_pass),len(pm.dies),status[0],status[1],status[2],vstr)
         return txt_desc
 
 #Spec: Core simulation model
@@ -40,7 +68,6 @@ class Model():
         
     def reset(self,env):
         self.env = env
-        self.desc_list=[] # some description about the model
                 
         fmt = '%Y-%m-%d'
         self.dt_start = datetime.strptime(gc.SETTING["MODEL_START_TIME"], fmt)
@@ -49,7 +76,7 @@ class Model():
         
         self.patient_mgr = PatientMgr() 
         #self.patient_mgr.start_init()
-        #self.srs= StateRecordSets()
+        self.srs= StateRecordSets()
         #sr = self.srs.find_byoffset(0) 
         #self.patient_mgr.update_sr(sr)
         
@@ -58,7 +85,6 @@ class Model():
         
     def model_setup(self):
         self.env.process(self.patients_run()) 
-        #self.desc_list.append("model_setup!")
     
     def patients_run(self):
         while True:
@@ -89,7 +115,5 @@ class Model():
             #logging.info("patients count %i" %(len(self.patient_mgr.patients)))
             yield self.env.timeout(1)  
         
-    def get_desc_str(self):
-        return "\n".join(self.desc_list)   
     def desc(self,desc_id):
         return self.patient_mgr.desc(desc_id)
