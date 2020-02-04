@@ -7,6 +7,7 @@
 #standard
 import random
 from datetime import datetime
+from codes.IvPID import PID
 #extend
 import csv
 import json
@@ -169,6 +170,11 @@ class StateRecordSets():
             return self.srs[od]
         else:
             return None
+    def find_record_by_date(self, date): #"%Y/%m/%d"
+        for i in range(len(self.sr_x)):
+            if self.sr_x[i] == date:
+                return self.sr_y[i]
+        return -1
     def load_sr(self):
         with open('include/' + self.record_file, 'r') as f:
             rows = csv.reader(f)
@@ -249,6 +255,13 @@ class VirusModel():
         
         self.show_to_heavy_rate= float(gc.SETTING["SHOW_TO_HEAVY_RATE"])
         self.infect_day_rate= float(gc.SETTING["INFECT_DAY_RATE"])
+        self.dr0_enable= int(gc.SETTING["DR0_ENABLE"])
+        dr0_pid= gc.SETTING["DR0_PID"] #P,I,D
+        pars=dr0_pid.split()
+        self.dr0_pid = [float(pars[0]),float(pars[1]),float(pars[2])]
+        
+        self.pid = PID(self.dr0_pid[0],self.dr0_pid[1],self.dr0_pid[2])
+        self.dr0 = 1.0
         
     # sick_day = 1 +- sickday_rnd
     # 0->1 : 潛伏期內隨機發生
@@ -284,7 +297,7 @@ class VirusModel():
             if patient.sick_status == SICKSTATUS_DIE or patient.sick_status ==SICKSTATUS_PASS:
                 return 0
             if patient.sick_day>= self.infect_daystart and patient.sick_day<=(self.infect_days+self.infect_daystart):
-                return self.vm_r0/(self.infect_days) * self.infect_day_rate 
+                return self.vm_r0/(self.infect_days) * self.infect_day_rate * self.dr0
             else:
                 return 0
         else:
@@ -302,7 +315,7 @@ class VirusModel():
             #print(patient.desc(0),end = '') #parser exception
     def desc(self,desc_id=0):
         txt_desc = "------ VirusModel Description: ------\n"
-        desc_txt = txt_desc + "vm_mode=%i,vm_r0=%f, sickday_rnd=%f,infect_daystart=%i,incubation_period=%i %i,show_to_end=%i %i,infect_days=%i,show_to_heavy_rate=%f,infect_day_rate=%f" % (self.vm_mode,self.vm_r0,self.sickday_rnd,self.infect_daystart,self.incubation_period[0],self.incubation_period[1],self.show_to_end[0],self.show_to_end[1],self.infect_days,self.show_to_heavy_rate,self.infect_day_rate)
+        desc_txt = txt_desc + "vm_mode=%i,vm_r0=%f, sickday_rnd=%f,infect_daystart=%i,incubation_period=%i %i,show_to_end=%i %i,infect_days=%i,show_to_heavy_rate=%f,infect_day_rate=%f,dr0_enable=%i,dr0_pid=%f %f %f" % (self.vm_mode,self.vm_r0,self.sickday_rnd,self.infect_daystart,self.incubation_period[0],self.incubation_period[1],self.show_to_end[0],self.show_to_end[1],self.infect_days,self.show_to_heavy_rate,self.infect_day_rate,self.dr0_enable,self.dr0_pid[0],self.dr0_pid[1],self.dr0_pid[2])
                 
 
         return desc_txt

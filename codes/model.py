@@ -9,6 +9,7 @@ import logging
 import random
 from datetime import datetime,timedelta
 from codes.ep import *
+
 #extend
 import copy
 #library
@@ -18,12 +19,13 @@ from lib.const import *
 ##### Code section #####
 
 
-#Spec: Monitor the model, collect the history
+#Spec: Manager the model, collect the history
 #How/NeedToKnow:
-class ModelMonitor():
+class ModelMgr():
     def __init__(self):
         self.history_x = []
         self.pms = [] # PatientMgrs
+
     #def append(self,data_date, pm, mr):
     def append(self,model):
         data_date = model.dt_end
@@ -33,8 +35,17 @@ class ModelMonitor():
         self.pms.append(copy.deepcopy(pm))
     def pms_info(self,info_id=0):
         info = []
-        for pm in self.pms:
-            info.append(len(pm.patients))
+        if info_id==0: # default, return all patients count
+            for pm in self.pms:
+                info.append(len(pm.patients))
+        if info_id==1:
+            for i in range(len(self.pms)):
+                if i==0:
+                    rate = len(self.pms[0].patients) / float(gc.SETTING["PATIENT_START_COUNT"])
+                    info.append(rate)
+                elif i< len(self.pms)-1:
+                    info.append(float(len(self.pms[i+1].patients))/ len(self.pms[i].patients))
+                    
         return info
     def desc(self,desc_id=0):
         # 0 - console
@@ -83,13 +94,18 @@ class Model():
         self.model_desc = ""
         self.model_day=0
         
+        
+        
+        
     def model_setup(self):
         self.env.process(self.patients_run()) 
     
     def patients_run(self):
+        rate_prev = 1.0
         while True:
             die_list = []
             pass_list = []
+            
             
             for k in list(self.patient_mgr.patients):
                 p = self.patient_mgr.patients[k]
@@ -113,6 +129,21 @@ class Model():
                 del self.patient_mgr.patients[n]
                 #self.patient_mgr.add_sr5()
             #logging.info("patients count %i" %(len(self.patient_mgr.patients)))
+            
+            # cal diff
+
+            if gc.VIRUS.dr0_enable:
+                date = gc.MODEL.dt_start + timedelta(self.model_day)
+                v_set = self.srs.find_record_by_date(date)
+                
+                if v_set == -1: # have valid value
+                    rate = rate_prev
+                else:
+                    rate = v_set/len(self.patient_mgr.patients)
+                    rate_prev = rate
+                gc.VIRUS.dr0 = 1.0 - gc.VIRUS.pid.update(rate)
+                print("txt_date = %s, model_day=%i,value=%i,rate=%f,dr0=%f" %(date,self.model_day,v_set,rate,gc.VIRUS.dr0))
+                
             yield self.env.timeout(1)  
         
     def desc(self,desc_id):

@@ -60,7 +60,7 @@ class SApp:
         gc.MODEL.srs.load_sr()
         gc.HC = md.HCSys()
         self.user_vars={}
-        self.mm = md.ModelMonitor()
+        self.mm = md.ModelMgr()
                  
     def simrun(self, v_until):
         """current debug command"""
@@ -70,6 +70,7 @@ class SApp:
                 
         for i in range(1,v_until):
             gc.MODEL.model_day = i
+            print("model_day=%i,dr0=%f" %(i,gc.VIRUS.dr0))
             gc.MODEL.env.run(until=i)
             gc.MODEL.dt_end = gc.MODEL.dt_start + timedelta(days=i)
             print("%s simulated!" %(gc.MODEL.dt_end.strftime('%Y/%m/%d')))
@@ -77,6 +78,7 @@ class SApp:
             
             #logging.info(gc.MODEL.desc() )
         print("total history: %s" % (self.mm.desc(0)))
-        gc.MODEL.model_desc = "R0=%.2f,DAY_RATE=%.2f,INFECT_DAYS=%.2f" % (gc.VIRUS.vm_r0,gc.VIRUS.infect_day_rate,gc.VIRUS.infect_days)
-        gc.UI.test(self.mm.history_x, self.mm.pms_info(0),gc.MODEL.model_desc)
+        gc.MODEL.model_desc = "rR0=%.2f,DAY_RATE=%.2f,INFECT_DAYS=%.2f" % (gc.VIRUS.vm_r0*gc.VIRUS.dr0,gc.VIRUS.infect_day_rate,gc.VIRUS.infect_days)
+        gc.UI.test(self.mm.history_x, self.mm.pms_info(0),gc.MODEL.model_desc,"%s" %(gc.VIRUS.desc(0)))
+        gc.UI.test(self.mm.history_x, self.mm.pms_info(1),gc.MODEL.model_desc,"%s" %(gc.VIRUS.desc(0)))
     

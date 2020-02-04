@@ -2,9 +2,13 @@
 
 Document : "https://paper.dropbox.com/doc/T5YrQLfFQXVNrSyS8iVQ4"
 
-## Current version: V0.2
+## Current version: V0.2.1
 
 ## By Version:
+### V0.2.1
+
+* dynamic R0 with PID control
+
 ### V0.2
 
 * state record by CSV

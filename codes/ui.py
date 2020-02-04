@@ -10,6 +10,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import logging
 #library
 import lib.globalclasses as gc
 from lib.const import *
@@ -24,29 +25,27 @@ class UserInterface():
         self.plot_seq=0
         pass
       
-    def test(self,data_x,data,label):
+    def test(self,data_x,data,label, desc):
         plt.xlabel('Date')
-        plt.ylabel('Patients Count')
+        
         #p = plt.plot(data,label=label)
-        p = plt.plot(data_x,data,label=label)
-        p = plt.plot(gc.MODEL.srs.sr_x,gc.MODEL.srs.sr_y,label=gc.MODEL.srs.record_file)
+        if len(data_x)-1==len(data):
+            plt.ylabel('Patients day increase rate')
+            p = plt.plot(data_x[:-1],data,label=label)
+            sr_y = []
+            for i in range(1, len(gc.MODEL.srs.sr_x)):
+                sr_y.append(float(gc.MODEL.srs.sr_y[i])/gc.MODEL.srs.sr_y[i-1])
+            p = plt.plot(gc.MODEL.srs.sr_x[1:],sr_y,label=gc.MODEL.srs.record_file)
+
+        else:
+            plt.ylabel('Patients Count')
+            p = plt.plot(data_x,data,label=label)
+            p = plt.plot(gc.MODEL.srs.sr_x,gc.MODEL.srs.sr_y,label=gc.MODEL.srs.record_file)
         plt.xticks(rotation=22.5)
-        
-        #plt.plot_date(data_x,data,label=label)
-        
         plt.legend()
-        #locator = mdates.AutoDateLocator(minticks=3, maxticks=7)
-        
-        #mdates.ConciseDateFormatter
-        #mdates.Con
-        #formatter = mdates.DateFormatter("%Y/%m/%d")
-        
-        #p.xaxis.set_major_locator(locator)
-        #p.xaxis.set_major_formatter(formatter)
-        
-        
         
         filename = "output/figure-%i.png" %(self.plot_seq)
+        logging.info("output figure-%i, desc=%s" %(self.plot_seq, desc))
         plt.savefig(filename)
         self.plot_seq+=1
         plt.close()
