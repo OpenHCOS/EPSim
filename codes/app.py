@@ -1,6 +1,5 @@
 # @file app.py
 # @brief The main module to maintain whole app
-# README: Application wide management unit
 # MODULE_ARCH:  ExecuteCmd, globalclasses_init, globallist_init
 # CLASS_ARCH: SimApp
 # GLOBAL USAGE: execmd_par
@@ -25,6 +24,7 @@ class SApp:
     def __init__(self):
         self.init_log()
         logging.info("%s version: v%s" %(LSIM_TITLE,LSIM_VERSION))
+        #logging.info("%s" %(""))
         self.reset()
         
         
@@ -70,15 +70,16 @@ class SApp:
                 
         for i in range(1,v_until):
             gc.MODEL.model_day = i
-            print("model_day=%i,dr0=%f" %(i,gc.VIRUS.dr0))
+            
+            logging.info("model_day=%i,dr0=%f" %(i,gc.VIRUS.dr0))
             gc.MODEL.env.run(until=i)
             gc.MODEL.dt_end = gc.MODEL.dt_start + timedelta(days=i)
-            print("%s simulated!" %(gc.MODEL.dt_end.strftime('%Y/%m/%d')))
+            logging.info("%s simulated!" %(gc.MODEL.dt_end.strftime('%Y/%m/%d')))
             self.mm.append(gc.MODEL)
             
             #logging.info(gc.MODEL.desc() )
-        print("total history: %s" % (self.mm.desc(0)))
+        logging.info("total history: %s" % (self.mm.desc(0)))
         gc.MODEL.model_desc = "rR0=%.2f,DAY_RATE=%.2f,INFECT_DAYS=%.2f" % (gc.VIRUS.vm_r0*gc.VIRUS.dr0,gc.VIRUS.infect_day_rate,gc.VIRUS.infect_days)
-        gc.UI.test(self.mm.history_x, self.mm.pms_info(0),gc.MODEL.model_desc,"%s" %(gc.VIRUS.desc(0)))
-        gc.UI.test(self.mm.history_x, self.mm.pms_info(1),gc.MODEL.model_desc,"%s" %(gc.VIRUS.desc(0)))
+        gc.UI.plot(self.mm.history_x, self.mm.pms_info(0),gc.MODEL.model_desc,"%s" %(gc.VIRUS.desc(0)))
+        gc.UI.plot(self.mm.history_x, self.mm.pms_info(1),gc.MODEL.model_desc,"%s" %(gc.VIRUS.desc(0)))
     

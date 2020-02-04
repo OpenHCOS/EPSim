@@ -1,6 +1,5 @@
 # @file model.py
 # @brief model used for simulation
-# README: model used for simulation
 # MODULE_ARCH:  
 # CLASS_ARCH:
 # GLOBAL USAGE: 
@@ -72,10 +71,7 @@ class ModelMgr():
 #How/NeedToKnow:
 class Model():
     def __init__(self,env):
-        #private
-        #global: these variables allow to direct access from outside.
         self.reset(env)
-        
         
     def reset(self,env):
         self.env = env
@@ -83,8 +79,7 @@ class Model():
         fmt = '%Y-%m-%d'
         self.dt_start = datetime.strptime(gc.SETTING["MODEL_START_TIME"], fmt)
         self.dt_end = self.dt_start #init value
-        
-        
+                
         self.patient_mgr = PatientMgr() 
         #self.patient_mgr.start_init()
         self.srs= StateRecordSets()
@@ -93,10 +88,7 @@ class Model():
         
         self.model_desc = ""
         self.model_day=0
-        
-        
-        
-        
+
     def model_setup(self):
         self.env.process(self.patients_run()) 
     
@@ -142,7 +134,7 @@ class Model():
                     rate = v_set/len(self.patient_mgr.patients)
                     rate_prev = rate
                 gc.VIRUS.dr0 = 1.0 - gc.VIRUS.pid.update(rate)
-                print("txt_date = %s, model_day=%i,value=%i,rate=%f,dr0=%f" %(date,self.model_day,v_set,rate,gc.VIRUS.dr0))
+                logging.info("txt_date = %s, model_day=%i,value=%i,rate=%f,dr0=%f" %(date,self.model_day,v_set,rate,gc.VIRUS.dr0))
                 
             yield self.env.timeout(1)  
         

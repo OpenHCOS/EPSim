@@ -1,6 +1,5 @@
 # @file ep.py
 # @brief  application core logic
-# README:
 # MODULE_ARCH:  
 # CLASS_ARCH:
 # GLOBAL USAGE: 
@@ -16,7 +15,7 @@ import lib.globalclasses as gc
 from lib.const import *
 
 ##### Code section #####
-#Spec: 
+#Spec: Human base class
 #How/NeedToKnow:
 class Human():
     def __init__(self,p_seq):
@@ -24,7 +23,7 @@ class Human():
         self.location_id = 0
 
 
-#Spec: 
+#Spec: Patient
 #How/NeedToKnow:
 class Patient(Human):
     def __init__(self,p_seq):
@@ -47,7 +46,7 @@ class Patient(Human):
         
 
 
-#Spec: Manager all patient information
+#Spec: Manager all patients information
 #How/NeedToKnow:        
 class PatientMgr():
     def __init__(self):
@@ -64,7 +63,6 @@ class PatientMgr():
         self.day_usage = None #object
     def start_init(self):
         patient_start = int(gc.SETTING["PATIENT_START_COUNT"]) 
-        #patient_start = 643
         for i in range(patient_start):
             new_patient_id = self.add_patient(0,0,True)
             self.root.append(new_patient_id)
@@ -153,7 +151,7 @@ class PatientMgr():
         return txt_desc
         
 
-#Spec: 
+#Spec: State Records from file
 #How/NeedToKnow:       
 class StateRecordSets():
     def __init__(self):
@@ -302,6 +300,7 @@ class VirusModel():
                 return 0
         else:
             return 0  
+
     def patient_init(self,patient, need_random=0): 
         patient.infect_days = random.uniform(0.75,1.25) * self.infect_days
          
@@ -313,9 +312,8 @@ class VirusModel():
             if random.uniform(0,1) <= self.show_to_heavy_rate:
                 patient.sick_status = SICKSTATUS_HEAVY
             #print(patient.desc(0),end = '') #parser exception
+
     def desc(self,desc_id=0):
         txt_desc = "------ VirusModel Description: ------\n"
         desc_txt = txt_desc + "vm_mode=%i,vm_r0=%f, sickday_rnd=%f,infect_daystart=%i,incubation_period=%i %i,show_to_end=%i %i,infect_days=%i,show_to_heavy_rate=%f,infect_day_rate=%f,dr0_enable=%i,dr0_pid=%f %f %f" % (self.vm_mode,self.vm_r0,self.sickday_rnd,self.infect_daystart,self.incubation_period[0],self.incubation_period[1],self.show_to_end[0],self.show_to_end[1],self.infect_days,self.show_to_heavy_rate,self.infect_day_rate,self.dr0_enable,self.dr0_pid[0],self.dr0_pid[1],self.dr0_pid[2])
-                
-
         return desc_txt

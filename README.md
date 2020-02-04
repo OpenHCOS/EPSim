@@ -2,9 +2,15 @@
 
 Document : "https://paper.dropbox.com/doc/T5YrQLfFQXVNrSyS8iVQ4"
 
-## Current version: V0.2.1
+## Current version: V0.2.2
 
 ## By Version:
+### V0.2.2
+
+* Unit test basic setup
+* print to logging
+* code clean-up
+
 ### V0.2.1
 
 * dynamic R0 with PID control

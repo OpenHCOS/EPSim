@@ -1,6 +1,5 @@
 # @file sim.py
 # @brief statup and AP mode selection
-# README: Startup code
 # MODULE_ARCH:  
 # CLASS_ARCH:
 # GLOBAL USAGE: 
@@ -22,7 +21,8 @@ import codes.cli as cli
 import codes.ut as ut
 import codes.ui as ui
 
-
+#Spec: program init, mode selection, start
+#How/NeedToKnow:
 if __name__ =='__main__':
     # Read system parameters which are assigned while we launching "start.py".
     # If the input parameter is invalid, then display usage and return "command
@@ -36,9 +36,9 @@ if __name__ =='__main__':
             if opt == '-h':
                 print ('sim.py [ -h ] [ -t ]')
                 print ('    -h, --help: help message')
-                print ('    -t, --py: unit py mode')
+                print ('    -t, --test: unit test mode')
                 sys.exit()
-            elif opt in ("-t", "--py"):
+            elif opt in ("-t", "--test"):
                 apmode = AP_MODE_UNITTEST
                 print("Running as unittest mode!")
     except getopt.GetoptError:
@@ -51,9 +51,8 @@ if __name__ =='__main__':
     gc.SETTING  = ConfigObj("include/sim.ini") 
     gc.UI = ui.UserInterface()
     gc.VIRUS = md.VirusModel()
-    #gc.MODEL = md.Model(simpy.Environment())
-    #gc.HC = md.HCSys()
     gc.GAP = app.SApp()
+    gc.CLI = cli.Cli()
     
     
     #run by different mode
@@ -62,5 +61,5 @@ if __name__ =='__main__':
         unittest.TextTestRunner(verbosity = 2).run(suite)
     else:
         
-        cli.Cli().cmdloop()
+        gc.CLI.cmdloop()
     

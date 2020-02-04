@@ -1,18 +1,18 @@
 # @file cli.py
 # @brief CLI of whole tool
-# README: Command line interface
 # MODULE_ARCH:  
 # CLASS_ARCH:
 # GLOBAL USAGE: 
 #standard
 import cmd
+import logging
 #extend
 #library
 import lib.globalclasses as gc
 from lib.const import *
 
 ##### Code section #####
-#Spec: local variable maintain, about, user commands, py commands
+#Spec: about, user commands, test commands
 #How/NeedToKnow:
 class Cli(cmd.Cmd):
     """Simple command processor example."""    
@@ -21,40 +21,6 @@ class Cli(cmd.Cmd):
         self.prompt = 'EPSimCLI> '
         pass
 ############ cli maintain ####################        
-    def do_set(self,line):
-        """set scli variable, can be new or update.
-        set var_name var_value
-        ex: set a 123"""
-
-        pars=line.split()
-        if len(pars)==2:
-            var = pars[0]
-            value = pars[1]
-        else:
-            return 
-        
-        if var in ('dev_console_display','log_level_file','log_level_console'):
-            value = int(value)
-            
-        gc.GAP.user_vars[var] = value
-        # dynamic apply
-        # these variable need to work out, log_level_file, log_level_console
-
-    def do_show(self,line):
-        """show simcli variables, if miss variable name, show all
-        show variable_name
-        system variables list:
-            ;log level definition, DEBUG=10,INFO=20,WARNING=30,ERROR=40,CRITICAL=50
-            log_level_console=20     #the console message log level
-            log_level_file=40        #file message log level
-            ;device console real time display
-            dev_console_display=1    #(0) don't display (1) display
-        ex: show dev_console_display """
-        for var in gc.GAP.user_vars.keys():
-            print("%s=%s" % ( var , gc.GAP.user_vars[var]))
-
-
-    
     def do_about(self, line):
         """About this software"""
         print("%s version: v%s" %(LSIM_TITLE,LSIM_VERSION))
@@ -62,30 +28,26 @@ class Cli(cmd.Cmd):
         """quit"""
         return True
 ############ top command ####################                      
-    #def do_test1(self, line):
-    #    """current debug command"""
-    #    self.cli_ebm.do_init("")
     def do_reset(self,line):
-        """ reset for next run """
-        
+        """ reset for next run """  
         gc.GAP.reset()
         print("reseted")
         
     def do_status(self,line):
         """ show current status 
             status {desc_id}
+            desc_id: 0-summary info, 1- detail info, 2- dot graph
             ex: status 1
         """
         pars=line.split()
         desc_id = 1
         if len(pars)==1:
             desc_id = int(pars[0])   
-        print(gc.VIRUS.desc(desc_id))     
-        print(gc.MODEL.desc(desc_id))
-        print(gc.HC.desc(desc_id))
-        print(gc.GAP.mm.desc(desc_id))                   
+        logging.info(gc.VIRUS.desc(desc_id))     
+        logging.info(gc.MODEL.desc(desc_id))
+        logging.info(gc.HC.desc(desc_id))
+        logging.info(gc.GAP.mm.desc(desc_id))                   
     
-    #
     def do_output(self,line):
         """ output files for analyze
             output {type_id} 
@@ -100,6 +62,7 @@ class Cli(cmd.Cmd):
             fp = open("output/day_summary.csv", "w")
             fp.write(gc.GAP.mm.desc(1))
             fp.close()
+
     def do_regression(self,line):
         """ regression for simulation 
             regression {case} {par1} {par2}
@@ -126,23 +89,7 @@ class Cli(cmd.Cmd):
         
     def do_test(self,line):
         """ current testing """
-        
-        #import json
-
-        #with open('include/usage.json' , 'r') as json_file:
-        #    data = json.load(json_file)
-        #    print(json.dumps(data))
-        
-        #data = [ { 'a' : 1, 'b' : 2, 'c' : 3, 'd' : 4, 'e' : 5 } ]
-
-        #json1 = json.dumps(data)
-        #print(json1)
-        
-        #jsonData = '{"a":1,"b":2,"c":3,"d":4,"e":5}'
-
-        #text = json.loads(jsonData)
-        #print(text)
-        
+        pass
 
     def do_simrun(self, line):
         """Start simulation

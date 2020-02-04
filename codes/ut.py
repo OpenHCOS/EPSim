@@ -1,9 +1,5 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 # @file ut.py
 # @brief The main unit test program of whole project
-# README: organize the unit tests in the number range
 #    refer UTGeneral functions
 #    print the suggested procedure in the console
 #    print the suggested check procedure in the console
@@ -29,6 +25,29 @@ class UTGeneral(unittest.TestCase):
     #local
     #ID:0-99
     def test_001_setting_signature(self):
-        print("\nThe expected unit test environment is")
-        print("1. XXX")
-        self.assertEqual(gc.SETTING["SIGNATURE"],'VIRUS-SIM')        
+        print("\nCheck signature and to see program started")
+        self.assertEqual(gc.SETTING["SIGNATURE"],'EPSim')        
+
+    def test_002_cli_help(self):
+        gc.CLI.do_help("")
+        self.assertEqual(True,True)        
+
+    def test_003_simrun(self):
+        gc.CLI.do_simrun("20")
+        self.assertEqual(True,True)
+
+    def test_004_status(self):
+        gc.CLI.do_status("1")
+        gc.CLI.do_status("2")
+        self.assertEqual(True,True)
+
+    def test_005_output(self):
+        gc.CLI.do_output("1")
+        self.assertEqual(True,True)
+
+    def test_006_regression(self):
+        gc.CLI.do_regression("1 3.0 0.1 10")
+        self.assertEqual(True,True)
+        
+        
+        

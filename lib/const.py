@@ -1,6 +1,5 @@
 # @file const.py
 # @brief global constant definition
-# README
 # MODULE_ARCH:  
 # CLASS_ARCH: 
 # GLOBAL USAGE: 
@@ -8,7 +7,7 @@
 #standard
 
 LSIM_TITLE='Epidemic Prevention Simulator'
-LSIM_VERSION='0.2.1'
+LSIM_VERSION='0.2.2'
 
 AP_MODE_NORMAL=1
 AP_MODE_UNITTEST=2

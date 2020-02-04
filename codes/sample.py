@@ -1,6 +1,5 @@
 # @file sample.py
 # @brief the sample file that copied for new python file
-# README:
 # MODULE_ARCH:  
 # CLASS_ARCH:
 # GLOBAL USAGE: 

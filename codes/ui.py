@@ -1,6 +1,5 @@
 # @file ui.py
-# @brief 
-# README: User interface related, import/export
+# @brief User interface related, import/export
 # MODULE_ARCH:  
 # CLASS_ARCH:
 # GLOBAL USAGE: 
@@ -16,7 +15,7 @@ import lib.globalclasses as gc
 from lib.const import *
 
 ##### Code section #####
-#Spec: plot
+#Spec: user interface : plot
 #How/NeedToKnow:
 class UserInterface():
     def __init__(self):
@@ -24,8 +23,8 @@ class UserInterface():
         #global: these variables allow to direct access from outside.
         self.plot_seq=0
         pass
-      
-    def test(self,data_x,data,label, desc):
+    # data to plot files  
+    def plot(self,data_x,data,label, desc):
         plt.xlabel('Date')
         
         #p = plt.plot(data,label=label)
