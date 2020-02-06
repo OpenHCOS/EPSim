@@ -23,7 +23,7 @@ from lib.const import *
 class SApp:
     def __init__(self):
         self.init_log()
-        logging.info("%s version: v%s" %(LSIM_TITLE,LSIM_VERSION))
+        logging.info("HCOS - %s version: v%s" %(LSIM_TITLE,LSIM_VERSION))
         #logging.info("%s" %(""))
         self.reset()
         

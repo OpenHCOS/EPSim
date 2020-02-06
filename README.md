@@ -1,5 +1,7 @@
 # EPSim - Epidemic Prevention Simulator
 
+本專案純粹是自我研究，請勿作為任何判斷依據
+
 Document : "https://paper.dropbox.com/doc/T5YrQLfFQXVNrSyS8iVQ4"
 
 ## Current version: V0.2.2
